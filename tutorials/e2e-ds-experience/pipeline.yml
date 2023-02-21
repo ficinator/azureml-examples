@@ -1,0 +1,3 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+description: E2E data_prep-train pipeline
+compute: azureml:cheapest-cluster
