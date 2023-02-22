@@ -1,3 +1,38 @@
 $schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+
+display_name: credit_defaults_pipeline
 description: E2E data_prep-train pipeline
+
 compute: azureml:cheapest-cluster
+
+inputs:
+  data:
+    path: azureml:creditcard_defaults:1.0.0
+  test_train_ratio: 0.25
+  learning_rate: 0.05
+  registered_model_name: credit_defaults_model
+
+outputs:
+  train_data:
+    mode: rw_mount
+  test_data:
+    mode: rw_mount
+
+jobs:
+  data_prep_job:
+    component: azureml:data_prep_credit_defaults:1
+    inputs:
+      data: ${{parent.inputs.data}}
+      test_train_ratio: ${{parent.inputs.test_train_ratio}}
+    outputs:
+      train_data: ${{parent.outputs.train_data}}
+      test_data: ${{parent.outputs.test_data}}
+  
+  train_job:
+    component: azureml:train_credit_defaults_model:1
+    inputs:
+      train_data: ${{parent.jobs.data_prep_job.outputs.train_data}}
+      test_data: ${{parent.jobs.data_prep_job.outputs.test_data}}
+      learning_rate: ${{parent.inputs.learning_rate}}
+      registered_model_name: ${{parent.inputs.registered_model_name}}
